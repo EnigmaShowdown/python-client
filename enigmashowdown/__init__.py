@@ -1,6 +1,34 @@
 # This is the main file for the python client
 
 import zmq
+import json
+from message import RequestMessage, ResponseMessage, ConnectRequest, ConnectResponse
+
+
+class ZeroMqBroadcastReceiver:
+    def __init__(self, context: zmq.Context, host: str, port: int) -> None:
+        self.context = context
+        self.host = host
+        self.port = port
+
+
+class ZeroMqRequestClient:
+    def __init__(self, context: zmq.Context, host: str, port: int) -> None:
+        self.context = context
+        self.host = host
+        self.port = port
+        
+    def send(self, request: RequestMessage) -> ResponseMessage:
+        with self.context.socket(zmq.REQ) as socket:
+            socket.connect(f"tcp://{self.host}:{self.port}")
+
+            request_json = json.dumps(request)
+
+            socket.send(request_json.encode('utf-8'))
+
+            response_json: str = socket.recv().decode('utf-8')
+            
+            return json.loads(response_json)
 
 
 def client_test():
@@ -23,18 +51,21 @@ def client_test():
 }
 """
 
-    context = zmq.Context()
+    client = ZeroMqRequestClient(zmq.Context(), "localhost", 31877)
 
-    #  Socket to talk to server
-    socket = context.socket(zmq.REQ)
-    socket.connect("tcp://localhost:31877")
+    connect_request: ConnectRequest = {"type": "connect-request", "clientType": "PLAYER"}
 
     for _ in range(10):
-        socket.send(request_json.encode('utf-8'))
+        connect_response: ConnectResponse = client.send(connect_request)
 
-        #  Get the reply
-        message = socket.recv().decode('utf-8')
-        print(message)
+        print(connect_response)
+
+    # for _ in range(10):
+    #     socket.send(request_json.encode('utf-8'))
+
+    #     #  Get the reply
+    #     message = socket.recv().decode('utf-8')
+    #     print(message)
     
     return
 
@@ -64,5 +95,5 @@ def broadcast_test():
     return
 
 if __name__=="__main__":
-    # client_test()
-    broadcast_test()
+    client_test()
+    # broadcast_test()
