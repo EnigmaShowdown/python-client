@@ -11,6 +11,9 @@ class RequestMessage(Packet):
 class ResponseMessage(Packet):
     pass
 
+class BroadcastMessage(Packet):
+    pass
+
 class PlayerAction(Packet):
     pass
 
