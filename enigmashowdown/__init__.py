@@ -1,4 +1,4 @@
-# This is the main file for the python client
+# This is the initialization file for the python client
 
 import zmq
 import json
